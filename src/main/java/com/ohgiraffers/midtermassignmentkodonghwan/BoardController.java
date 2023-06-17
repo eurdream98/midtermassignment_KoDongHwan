@@ -13,38 +13,34 @@ import java.io.File;
 
 @Controller
 public class BoardController {
-    @PostMapping("board/regist")
-    public String registBoard(@ModelAttribute("board") BoardDTO boardDTO) {
 
+
+    @PostMapping(value = {"/board/regist", "/board/regist/file"})
+    public String handleFormSubmission(@ModelAttribute("board") BoardDTO boardDTO,
+                                       @ModelAttribute("singleFile") MultipartFile singleFile,
+                                       String singleFileDescription, Model model) {
+        // 게시글 등록 로직 처리
+
+        if (!singleFile.isEmpty()) {
+            String root = "src/main/resources/static";
+            String filePath = root + "/uploadFiles";
+            File dir = new File(filePath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            String originFileName = singleFile.getOriginalFilename();
+            try {
+                singleFile.transferTo(new File(filePath + "/" + originFileName));
+                model.addAttribute("message", "파일 업로드 성공!");
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("message", "파일 업로드 실패!!");
+            }
+        }
 
         return "result";
-
-
     }
 
-    @PostMapping("board/regist")
-    public String singleFileUpload(@ModelAttribute MultipartFile singleFile,
-                                   String singleFileDescription, Model model) {
-        System.out.println("singleFile : " + singleFile);
-        System.out.println("singleFileDescription : " + singleFileDescription);
-        /* 파일을 저장할 경로 설정 */
-        String root = "src/main/resources/static";
-        String filePath = root + "/uploadFiles";
-        File dir = new File(filePath);
-        System.out.println(dir.getAbsolutePath());
-        if(!dir.exists()) {
-            dir.mkdirs();
-        }
-//        /* 파일명 변경 처리 */
-        String originFileName = singleFile.getOriginalFilename();
 
-        try {
-            singleFile.transferTo(new File(filePath + "/" + originFileName));
-            model.addAttribute("message", "파일 업로드 성공!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("message", "파일 업로드 실패!!");
-        }
-        return "result";
-    }
+
 }
